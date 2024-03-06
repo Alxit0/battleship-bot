@@ -157,7 +157,7 @@ def calc_probabil_map(cur_map: np.ndarray, active_ships: List[int], *, prio_ship
 				if np.all(cur_map[i:i+tam, j] >= 0):
 					new_mapa[i:i+tam, j] = new_mapa[i:i+tam, j] + peso
 
-	
+
 	m = max(active_ships)
 	for i in set(active_ships):
 		if i == m and prio_ship_sz:
@@ -168,6 +168,17 @@ def calc_probabil_map(cur_map: np.ndarray, active_ships: List[int], *, prio_ship
 	return new_mapa
 
 def calc_next_move(prob_map: np.ndarray):
+	"""Legend:
+	- -2: hit
+	- -1: miss
+	- 0>: empty
+
+	Args:
+		prob_map (np.ndarray): _description_
+
+	Returns:
+		_type_: _description_
+	"""
 	h, w = prob_map.shape
 	if np.any(prob_map == -2):
 		# destroy
