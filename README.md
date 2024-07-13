@@ -8,6 +8,8 @@ This project contains a fully automatic bot to play the game [Battlefield](http:
 - Implements strategies to prioritize finding and destroying larger ships.
 - Uses probability maps to determine the best next move.
 - Can start and play multiple games automatically.
+- **Hits Visualizer**: Program to display in the command line the statistics of how likely it is to find a `hit` in a position of the map.
+- **Performance Tests**: Program that simulates 500 games of Battlefield applying the functions that are used to determine the next move (`calc_probabil_map` & `calc_next_move`) present in the [bot](src/bot.py) file.
 
 ## Prerequisites
 
@@ -78,7 +80,7 @@ python bot.py "http://en.battleship-game.org/your-match-url"
 
     - Ends the game when all ships are destroyed or the opponent's ships are destroyed.
 
-    - Optionally pauses between games if the user requests.
+    - Optionally pauses between games if the user requests. (pressind `Q` key)
 
 3. **Move Calculation**:
 
