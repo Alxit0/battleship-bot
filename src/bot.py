@@ -5,6 +5,7 @@
 		- change priority by those who give more info in case it hits: DONE
 		- give priority to find the bigger ships first: DONE
 			- make the rest ships contribute to tiebreake: DONE
+		- calc by probability in "destroy" part
 """
 from __future__ import annotations
 
@@ -35,19 +36,26 @@ class BattleField:
 			f"//*[contains(@class, 'battlefield battlefield__{class_search}')]"
 		)
 
+		self.turns = 0
+
 	def wait_for_turn(self, me: BattleField, delay=0.5):
 		a = time.time()
 		y = lambda: (len(me.get_active_ships()) == 0) ^ (len(self.get_active_ships()) == 0)
 		game_ended = y()
 		
+		n_of_loops = 0
 		while not self._is_active() and not game_ended:
 			time.sleep(delay)
 			
-			# time out (2 min)
-			if time.time() - a > 120:
+			# time out (1 min 30 sec)
+			if time.time() - a > 90:
 				return True
 			
 			game_ended = y()
+			n_of_loops +=1
+
+		if n_of_loops > 1:
+			self.turns += 1
 
 		return game_ended
 
@@ -199,6 +207,9 @@ def calc_next_move(prob_map: np.ndarray):
 		
 		empty_cells = [(i, j) for i, j in possible_cells if prob_map[i, j] >= 0]
 
+		# chose with highest probability
+		empty_cells.sort(key=lambda x:prob_map[x[0], x[1]], reverse=True)
+		
 		if len(empty_cells) > 0:
 			return random.choice(empty_cells)
 
@@ -267,7 +278,7 @@ def play_game(browser: Firefox) -> bool:
 
 		n_moves += 1
 
-	return (len(me.get_active_ships()) != 0, n_moves)
+	return (len(me.get_active_ships()) != 0, battlefield.turns)
 
 
 def on_press(key):
@@ -279,10 +290,11 @@ def on_press(key):
 		pass
 
 def clear_last_lines(n=2):
-    # Move cursor up n lines
-    sys.stdout.write("\033[F" * n)
-    # Clear the current line
-    sys.stdout.write("\033[K" * n)
+	for _ in range(n):
+		# Move cursor up n lines
+		sys.stdout.write("\033[F")
+		# Clear the current line
+		sys.stdout.write("\033[K")
 
 def main():
 	global runing_loop
@@ -294,10 +306,10 @@ def main():
 	browser.get("http://en.battleship-game.org/")
 
 	runing_loop = True
-	stats = [5, 5]
+	stats = [0, 0]
 	
 	i = 1
-	while i <= 3:
+	while i <= 10:
 		print("#"*10, f"Game {i}", "#"*10)
 		
 		randomize_layout(browser)
@@ -322,8 +334,8 @@ def main():
 		
 		i += 1
 
-		# if input('New game? (y/n) ') == 'n':
-		# 	break
+		if input('New game? (y/n) ') == 'n':
+			break
 		
 	print("#"*15)
 	print(f"Wins: {stats[1]}\nLoses: {stats[0]}")
