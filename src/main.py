@@ -93,7 +93,7 @@ def main():
 
 
 	while True:
-		os.system('clear')
+		os.system('cls' if os.name == 'nt' else 'clear')
 		
 		probs = calc_prob(mapa)
 		best_plays = high_probs(probs)

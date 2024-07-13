@@ -5,7 +5,6 @@
 		- change priority by those who give more info in case it hits: DONE
 		- give priority to find the bigger ships first: DONE
 			- make the rest ships contribute to tiebreake: DONE
-		- calc by probability in "destroy" part
 """
 from __future__ import annotations
 
@@ -25,6 +24,7 @@ from pynput import keyboard
 from selenium.webdriver import Firefox
 from selenium.webdriver.remote.webelement import WebElement
 
+FIREFOX_DRIVER = ""
 runing_loop = True
 
 class BattleField:
@@ -104,9 +104,12 @@ class BattleField:
 
 
 def init_browser() -> webdriver.Firefox:
-	user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:122.0) Gecko/20100101 Firefox/122.0"
-	firefox_driver = "/Users/alexito_player/Drivers/geckodriver"
-	firefox_service = Service(firefox_driver)
+	if FIREFOX_DRIVER == "":
+		print("No driver provided")
+		exit(0)
+    
+	user_agent = "python script"
+	firefox_service = Service(FIREFOX_DRIVER)
 	firefox_options = Options()
 	firefox_options.set_preference('general.useragent.override', user_agent)
 
