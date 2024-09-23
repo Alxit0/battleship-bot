@@ -5,6 +5,7 @@
 		- change priority by those who give more info in case it hits: DONE
 		- give priority to find the bigger ships first: DONE
 			- make the rest ships contribute to tiebreake: DONE
+		- abilaty to define costum map
 """
 from __future__ import annotations
 
@@ -12,7 +13,7 @@ import random
 import sys
 import time
 import numpy as np
-from typing import List
+from typing import List, Tuple
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -24,7 +25,7 @@ from pynput import keyboard
 from selenium.webdriver import Firefox
 from selenium.webdriver.remote.webelement import WebElement
 
-FIREFOX_DRIVER = ""
+FIREFOX_DRIVER = "/Users/alexito_player/Drivers/geckodriver"
 runing_loop = True
 
 class BattleField:
@@ -135,9 +136,70 @@ def exit_game(browser: Firefox):
 		except:
 			browser.find_element(By.CLASS_NAME, "leave-link").click()
 
+
 def randomize_layout(browser: Firefox):
 	browser.find_element(By.XPATH, "//*[text()='Randomise']").click()
 	time.sleep(.1)
+
+def _place_piece(
+		browser: webdriver.Firefox, 
+		piece: WebElement, 
+		field: List[List[WebElement]], 
+		pos: Tuple[int, int], 
+		horientation: bool,
+		sz: int):
+	
+
+	# Locate the source element
+	source_element = piece
+
+	# Create action chain object
+	actions = ActionChains(browser)
+
+	# correct horientation
+	if horientation:
+
+		x_offset = field[0][0].location['x'] - source_element.location['x'] + 1
+		y_offset = field[0][0].location['y'] - source_element.location['y'] + 1
+		
+		actions.drag_and_drop_by_offset(source_element, x_offset, y_offset)
+		actions.click(field[0][0])
+
+		source_element = field[0][0]
+
+	# Locate the target element (where to drop)
+	y, x = pos
+	target_element = field[y][x]
+
+	# Perform drag and drop
+	x_offset = target_element.location['x'] - source_element.location['x'] + 1
+	y_offset = target_element.location['y'] - source_element.location['y'] + 1
+	actions.drag_and_drop_by_offset(source_element, x_offset, y_offset)
+	
+	actions.perform()
+
+def load_layout(browser: webdriver.Firefox, layout):
+
+	# go to page
+	browser.find_element(By.XPATH, "//*[text()='Reset']").click()
+
+	# get pieces / field
+	pieces = browser.find_elements(By.XPATH, "//*[contains(@class, 'ship-box')]")
+	field = []
+	for row in browser.find_elements(By.XPATH, "//tr[@class='battlefield-row']"):
+		field.append(row.find_elements(By.XPATH, ".//*[@class='battlefield-cell-content']"))
+
+	# place pieces
+	pieces_organized = [(piece, pos, horiz, sz) for piece, (sz, pos, horiz) in zip(pieces, layout)] 
+	pieces_organized.sort(key=lambda x: sum(x[1]), reverse=True)
+	pieces_organized.sort(key=lambda x: x[2])
+
+	for piece, pos, horiz, sz in pieces_organized:
+
+		_place_piece(browser, piece, field, pos, not horiz, sz)
+	
+	time.sleep(3)
+
 
 
 def click_in_position(browser: Firefox, cell:WebElement):
@@ -300,6 +362,8 @@ def clear_last_lines(n=2):
 		sys.stdout.write("\033[K")
 
 def main():
+	layout = [(4, (5, 2), True), (3, (5, 0), False), (3, (3, 9), False), (2, (9, 0), True), (2, (0, 3), True), (2, (9, 3), True), (1, (3, 2), True), (1, (0, 9), False), (1, (2, 6), False), (1, (7, 8), False)]
+
 	global runing_loop
 	listener = keyboard.Listener(on_press=on_press)
 	listener.start()
@@ -310,12 +374,12 @@ def main():
 
 	runing_loop = True
 	stats = [0, 0]
+
+	load_layout(browser, layout)
 	
 	i = 1
 	while i <= 10:
 		print("#"*10, f"Game {i}", "#"*10)
-		
-		randomize_layout(browser)
 		
 		# start_friend_game(browser)
 		start_game(browser)

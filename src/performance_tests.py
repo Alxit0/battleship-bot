@@ -43,6 +43,8 @@ class Ship:
         self.pos = (y, x)
         self.horientation = horientation
 
+        return self.sz, self.pos, self.horientation
+
     def hit(self):
         self.hp -= 1
 
@@ -50,6 +52,7 @@ class Ship:
 class FakeBattlefield:
     def __init__(self, ships, map_sz: int=10) -> None:
         self.ships: List[Ship] = list(map(Ship, ships))
+        self.pieces_config = []
 
         self.map = self.generate_random_map(
             map_sz,
@@ -114,7 +117,8 @@ class FakeBattlefield:
         ships = ships[::-1]
 
         for idx, ship in enumerate(self.ships):
-            ship.put_in_map(table_sz, new_map, idx+1)
+            piece_cnf = ship.put_in_map(table_sz, new_map, idx+1)
+            self.pieces_config.append(piece_cnf)
             
         return new_map
     
@@ -139,21 +143,23 @@ def main():
 
     a = 0
     max_moves = 0
-    max_moves_map = np.asanyarray([])
+    best_map = None
+    
     for _ in tqdm(range(n)):
         fk_battlefield = FakeBattlefield([4, 3, 3, 2, 2, 2, 1, 1, 1, 1], 10)
         n_moves = solve_battlefield(fk_battlefield)
         a += n_moves
         if n_moves > max_moves:
-            max_moves_map = fk_battlefield.map.copy()
+            best_map = fk_battlefield
             max_moves = n_moves
 
         # print(f"{n_moves = }")
     
     print(f"Media: {a/n} moves")
     print("Best Map:")
-    print(max_moves_map)
+    print(best_map.map)
     print(f"Took {max_moves} moves")
+    print(best_map.pieces_config)
 
 if __name__ == "__main__":
     main()
