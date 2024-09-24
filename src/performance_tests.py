@@ -1,3 +1,4 @@
+import json
 import random
 from typing import List, Tuple
 import numpy as np
@@ -42,6 +43,9 @@ class Ship:
         
         self.pos = (y, x)
         self.horientation = horientation
+
+        if self.sz == 1:
+            self.horientation = True
 
         return self.sz, self.pos, self.horientation
 
@@ -160,6 +164,9 @@ def main():
     print(best_map.map)
     print(f"Took {max_moves} moves")
     print(best_map.pieces_config)
+
+    with open("./map_cnf.json", "w+") as file:
+        json.dump(best_map.pieces_config, file)
 
 if __name__ == "__main__":
     main()

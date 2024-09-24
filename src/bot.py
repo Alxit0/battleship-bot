@@ -5,10 +5,11 @@
 		- change priority by those who give more info in case it hits: DONE
 		- give priority to find the bigger ships first: DONE
 			- make the rest ships contribute to tiebreake: DONE
-		- abilaty to define costum map
+		- abilaty to define costum map: DONE
 """
 from __future__ import annotations
 
+import json
 import random
 import sys
 import time
@@ -178,7 +179,9 @@ def _place_piece(
 	
 	actions.perform()
 
-def load_layout(browser: webdriver.Firefox, layout):
+def load_layout(browser: webdriver.Firefox):
+	with open("./map_cnf.json", "r") as file:
+		layout = json.load(file)
 
 	# go to page
 	browser.find_element(By.XPATH, "//*[text()='Reset']").click()
@@ -191,7 +194,7 @@ def load_layout(browser: webdriver.Firefox, layout):
 
 	# place pieces
 	pieces_organized = [(piece, pos, horiz, sz) for piece, (sz, pos, horiz) in zip(pieces, layout)] 
-	pieces_organized.sort(key=lambda x: sum(x[1]), reverse=True)
+	pieces_organized.sort(key=lambda x: (x[1][0] < 2) + (x[1][1] < 2))
 	pieces_organized.sort(key=lambda x: x[2])
 
 	for piece, pos, horiz, sz in pieces_organized:
@@ -362,8 +365,6 @@ def clear_last_lines(n=2):
 		sys.stdout.write("\033[K")
 
 def main():
-	layout = [(4, (5, 2), True), (3, (5, 0), False), (3, (3, 9), False), (2, (9, 0), True), (2, (0, 3), True), (2, (9, 3), True), (1, (3, 2), True), (1, (0, 9), False), (1, (2, 6), False), (1, (7, 8), False)]
-
 	global runing_loop
 	listener = keyboard.Listener(on_press=on_press)
 	listener.start()
@@ -375,8 +376,8 @@ def main():
 	runing_loop = True
 	stats = [0, 0]
 
-	load_layout(browser, layout)
-	
+	load_layout(browser)
+
 	i = 1
 	while i <= 10:
 		print("#"*10, f"Game {i}", "#"*10)
